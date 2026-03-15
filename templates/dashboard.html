@@ -1,0 +1,1527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>SYNCME</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#00ffd1">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.min.js"></script>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23050505'/%3E%3Cpolygon points='32,4 60,18 60,46 32,60 4,46 4,18' fill='none' stroke='%2300FFD1' stroke-width='2'/%3E%3Cpolygon points='32,12 52,22 52,42 32,52 12,42 12,22' fill='none' stroke='%2300FFD1' stroke-width='1' opacity='0.4'/%3E%3Cpath d='M24 26 L32 20 L40 26 L40 38 L32 44 L24 38 Z' fill='none' stroke='%2300FFD1' stroke-width='1.5'/%3E%3Cline x1='32' y1='4' x2='32' y2='12' stroke='%23CC3333' stroke-width='2'/%3E%3Cline x1='60' y1='18' x2='52' y2='22' stroke='%23CC3333' stroke-width='2'/%3E%3Cline x1='60' y1='46' x2='52' y2='42' stroke='%23CC3333' stroke-width='2'/%3E%3Cline x1='32' y1='60' x2='32' y2='52' stroke='%23CC3333' stroke-width='2'/%3E%3Cline x1='4' y1='46' x2='12' y2='42' stroke='%23CC3333' stroke-width='2'/%3E%3Cline x1='4' y1='18' x2='12' y2='22' stroke='%23CC3333' stroke-width='2'/%3E%3Ccircle cx='32' cy='32' r='4' fill='%2300FFD1'/%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<link rel="stylesheet" href="/static/css/tactical-index.css">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+:root {
+  --bg0:#050505;--bg1:#0a0a0a;--bg2:#060606;--bg3:#0a0a0a;
+  --border:rgba(0,255,209,0.25);--accent:#00ffd1;--a2:#00ff88;
+  --green:#00ff88;--red:#cc3333;--yellow:#ffbf00;--purple:#9d00ff;--orange:#ff8800;
+  --text:#00ffd1;--text2:#3a6b6b;
+  --glow:0 0 12px rgba(0,255,209,.2);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;border-radius:0 !important;}
+html,body{height:100%;overflow:hidden;}
+body{font-family:'Share Tech Mono',monospace;background:var(--bg0);color:var(--text);}
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:var(--bg1);}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:0;}
+
+.badge{margin-left:auto;background:var(--red);color:#000;font-size:9px;padding:1px 6px;min-width:16px;text-align:center;}
+.badge.warn{background:var(--yellow);}
+.badge.live{background:var(--red);animation:livep 1.5s infinite;}
+
+.card{background:var(--bg1);border:1px solid var(--border);position:relative;margin-bottom:12px;
+clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);}
+.card::before { content: ''; position: absolute; top: 0; left: 0; width: 12px; height: 12px; border-top: 2px solid var(--red); border-left: 2px solid var(--red); pointer-events: none;}
+.card::after { content: ''; position: absolute; bottom: 0; right: 0; width: 12px; height: 12px; border-bottom: 2px solid var(--red); border-right: 2px solid var(--red); pointer-events: none;}
+.card-head{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;border-bottom:1px dashed var(--border);background:var(--bg2);flex-wrap:wrap;gap:8px;}
+.card-title{font-size:13px;font-weight:700;letter-spacing:1.5px;color:var(--text);display:flex;align-items:center;gap:6px;text-transform:uppercase;}
+.card-body{padding:16px;}
+
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px;}
+.stat-c{background:var(--bg1);border:1px solid var(--border);padding:14px 16px;position:relative;
+clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);}
+.stat-lbl{font-size:9px;color:var(--text2);letter-spacing:2px;margin-bottom:5px;text-transform:uppercase;}
+.stat-val{font-size:26px;font-weight:700;color:var(--accent);}
+
+.btn{font-family:'Share Tech Mono';font-size:11px;padding:6px 14px;border:1px solid;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:5px;text-transform:uppercase;letter-spacing:1px;background:rgba(0,255,209,0.05);}
+.btn-p{color:var(--bg0);background:var(--accent);border-color:var(--accent);}
+.btn-p:hover{background:var(--a2);box-shadow:var(--glow);}
+.btn-g{color:var(--text);border-color:var(--border);}
+.btn-g:hover{background:rgba(0,255,209,0.1);border-color:var(--accent);}
+.btn-d{color:var(--red);border-color:var(--red);}
+.btn-d:hover{background:rgba(204,51,51,0.1);}
+.btn-grn{color:var(--green);border-color:var(--green);}
+.btn-grn:hover{background:rgba(0,255,136,0.1);}
+.sm{padding:4px 10px;font-size:10px;}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+
+.inp{background:var(--bg0);border:1px solid var(--border);color:var(--text);font-family:'Share Tech Mono';font-size:12px;padding:8px 12px;outline:none;transition:border-color .2s;width:100%;}
+.inp:focus{border-color:var(--accent);background:rgba(0,255,209,0.05);}
+.inp::placeholder{color:var(--text2);}
+select.inp{cursor:pointer;}
+select.inp option{background:var(--bg1);}
+
+.dev-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:11px;padding:16px;}
+.dev-card{background:var(--bg2);border:1px solid var(--border);padding:13px;cursor:pointer;transition:all .2s;position:relative;}
+.dev-card:hover,.dev-card.sel{border-color:var(--accent);background:rgba(0,255,209,0.05);}
+.dev-card.sel{box-shadow:inset 0 0 10px rgba(0,255,209,0.2), var(--glow);}
+.dev-icon{font-size:24px;margin-bottom:5px;}
+.dev-name{font-size:11px;font-weight:700;color:var(--text);margin-bottom:2px;text-transform:uppercase;}
+.dev-os{font-size:9px;color:var(--text2);margin-bottom:5px;text-transform:uppercase;}
+.dev-meta{display:flex;align-items:center;justify-content:space-between;}
+.dev-ip{font-size:9px;color:var(--text2);}
+.pill{font-size:9px;padding:2px 6px;text-transform:uppercase;font-weight:700;}
+.pill.online{background:rgba(0,255,136,.12);color:var(--green);border:1px solid var(--green);}
+.pill.offline{background:rgba(204,51,51,.12);color:var(--red);border:1px solid var(--red);}
+.bat-bar-wrap{height:4px;background:var(--border);overflow:hidden;margin-top:5px;}
+.bat-bar{height:100%;transition:width .5s;}
+
+.notif-list{display:flex;flex-direction:column;gap:6px;padding:12px;}
+.notif-item{display:flex;align-items:flex-start;gap:10px;background:var(--bg2);border:1px solid var(--border);padding:9px 12px;}
+.ni-icon2{font-size:16px;flex-shrink:0;margin-top:1px;}
+.ni-body{flex:1;min-width:0;}
+.ni-title{font-size:12px;font-weight:700;color:var(--text);margin-bottom:2px;text-transform:uppercase;}
+.ni-text{font-size:11px;color:var(--text2);word-break:break-word;}
+.ni-foot{font-size:10px;color:var(--text2);margin-top:4px;text-transform:uppercase;}
+.ni-del{background:none;border:none;cursor:pointer;color:var(--red);font-size:14px;padding:2px 5px;transition:all .15s;}
+.ni-del:hover{background:rgba(204,51,51,.2);}
+
+.file-list{display:flex;flex-direction:column;gap:6px;padding:12px;}
+.file-item{display:flex;align-items:center;gap:10px;background:var(--bg2);border:1px solid var(--border);padding:9px 13px;}
+.f-icon{font-size:18px;flex-shrink:0;}
+.f-info{flex:1;min-width:0;}
+.f-name{font-size:12px;color:var(--text);font-weight:700;white-space:nowrap;}
+.f-meta{font-size:10px;color:var(--text2);margin-top:2px;text-transform:uppercase;}
+.f-acts{display:flex;gap:6px;flex-shrink:0;}
+
+.drop-z{border:1px dashed var(--accent);padding:32px;text-align:center;cursor:pointer;background:rgba(0,255,209,0.02);transition:all .2s;text-transform:uppercase;letter-spacing:1px;}
+.drop-z.over{background:rgba(0,255,209,0.1);border-style:solid;}
+.drop-icon{font-size:28px;margin-bottom:8px;}
+.drop-lbl{font-size:12px;color:var(--text);}
+
+.terminal{background:#000;border:1px solid var(--border);padding:12px;font-size:12px;line-height:1.6;max-height:360px;overflow-y:auto;font-family:'Share Tech Mono';}
+.term-entry{margin-bottom:9px;border-bottom:1px dashed rgba(0,255,209,.2);padding-bottom:9px;}
+.term-cmd{color:var(--a2);}
+.term-cmd::before{content:'> ';color:var(--text);}
+.term-out{color:var(--text);white-space:pre-wrap;word-break:break-all;margin-top:4px;}
+.term-err{color:var(--red);white-space:pre-wrap;word-break:break-all;margin-top:4px;}
+.term-meta{font-size:10px;color:var(--text2);margin-top:3px;text-transform:uppercase;}
+.term-dev{color:var(--yellow);margin-right:5px;}
+
+.clip-area{width:100%;min-height:100px;background:#000;border:1px solid var(--border);padding:11px;font-family:'Share Tech Mono';font-size:12px;color:var(--text);resize:vertical;outline:none;transition:border-color .2s;}
+.clip-area:focus{border-color:var(--accent);}
+
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;padding:14px;}
+.stat-pill{background:var(--bg2);border:1px solid var(--border);padding:11px 13px;border-left:2px solid var(--border);}
+.sp-lbl{font-size:9px;color:var(--text2);letter-spacing:2px;margin-bottom:4px;text-transform:uppercase;}
+.sp-val{font-size:20px;font-weight:700;color:var(--text);}
+.sp-unit{font-size:10px;color:var(--text2);}
+
+.tabs{display:flex;gap:3px;padding:12px 16px 0;}
+.tab{font-size:12px;padding:6px 14px;cursor:pointer;color:var(--text2);border:1px solid transparent;border-bottom:none;text-transform:uppercase;letter-spacing:1px;}
+.tab.active{color:var(--bg0);background:var(--accent);font-weight:700;}
+.sms-list{display:flex;flex-direction:column;gap:5px;padding:12px;max-height:400px;overflow-y:auto;}
+.sms-item{background:var(--bg2);border:1px solid var(--border);padding:9px 13px;}
+.sms-num{font-size:11px;color:var(--yellow);font-weight:700;margin-bottom:2px;}
+.sms-body{font-size:11px;color:var(--text);}
+.sms-meta{font-size:10px;color:var(--text2);margin-top:3px;}
+
+.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:9px;padding:12px;}
+.photo-card{position:relative;border:1px solid var(--border);overflow:hidden;aspect-ratio:1;cursor:pointer;background:#000;}
+.photo-card img{width:100%;height:100%;object-fit:cover;transition:transform .2s;display:block;}
+.photo-card:hover img{transform:scale(1.05);}
+.photo-del{position:absolute;top:4px;right:4px;background:rgba(0,0,0,.85);border:1px solid var(--red);color:var(--red);padding:2px 6px;font-size:10px;cursor:pointer;opacity:0;transition:opacity .2s;}
+.photo-card:hover .photo-del{opacity:1;}
+.photo-meta{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.8);border-top:1px solid var(--border);padding:6px 7px 5px;font-size:9px;color:var(--text2);text-transform:uppercase;}
+
+.rec-item{display:flex;align-items:center;gap:10px;background:var(--bg2);border:1px solid var(--border);padding:9px 13px;margin-bottom:6px;}
+audio{height:28px;flex:1;min-width:0;filter:invert(1) hue-rotate(180deg);}
+
+.map-wrap{padding:12px;}
+.map-ph{background:#000;border:1px solid var(--border);min-height:320px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background-image:linear-gradient(rgba(0,255,209,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,209,0.05) 1px, transparent 1px);background-size:20px 20px;}
+.map-iframe{width:100%;height:360px;border:none;display:block;filter:invert(90%) hue-rotate(180deg) contrast(150%);}
+.gps-dot{width:12px;height:12px;border-radius:50%!important;background:var(--accent);box-shadow:0 0 0 4px rgba(0,255,209,.25);animation:gp 2s infinite;}
+@keyframes gp{0%,100%{box-shadow:0 0 0 0 rgba(0,255,209,.4)}50%{box-shadow:0 0 0 8px rgba(0,255,209,0)}}
+.hist-item{font-size:11px;color:var(--text2);padding:5px 14px;border-bottom:1px dashed rgba(0,255,209,0.2);display:flex;justify-content:space-between;}
+
+.contact-item{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid rgba(0,255,209,0.1);transition:background .15s;}
+.contact-item:hover{background:var(--bg2);}
+.contact-av{width:32px;height:32px;border:1px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--text);flex-shrink:0;}
+.contact-name{font-size:12px;color:var(--text);font-weight:700;text-transform:uppercase;}
+.contact-num{font-size:10px;color:var(--text2);}
+.c-sms-btn{margin-left:auto;font-size:10px;padding:2px 8px;background:none;border:1px solid var(--accent);color:var(--accent);cursor:pointer;flex-shrink:0;text-transform:uppercase;}
+.c-sms-btn:hover{background:rgba(0,255,209,.1);}
+
+.call-item{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid rgba(0,255,209,0.1);}
+.call-type-incoming{color:var(--green);}
+.call-type-outgoing{color:var(--text);}
+.call-type-missed{color:var(--red);}
+.call-dur{font-size:10px;color:var(--text2);margin-left:auto;flex-shrink:0;}
+
+.ctrl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:11px;padding:16px;}
+.ctrl-btn{background:var(--bg2);border:1px solid var(--border);padding:16px 12px;text-align:center;cursor:pointer;transition:all .2s;}
+.ctrl-btn:hover{border-color:var(--accent);background:rgba(0,255,209,0.05);transform:translateY(-2px);}
+.ctrl-btn .cicon{font-size:26px;margin-bottom:6px;}
+.ctrl-btn .clbl{font-size:11px;color:var(--text);font-weight:700;text-transform:uppercase;}
+.ctrl-btn .csub{font-size:10px;color:var(--text2);margin-top:2px;}
+.range-inp{width:100%;height:4px;-webkit-appearance:none;background:var(--border);outline:none;cursor:pointer;}
+.range-inp::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;background:var(--accent);cursor:pointer;box-shadow:var(--glow);}
+.ctrl-log{background:#000;border:1px solid var(--border);padding:10px;font-size:11px;max-height:140px;overflow-y:auto;margin-top:10px;font-family:'Share Tech Mono';}
+.cl-ok{color:var(--green);} .cl-fail{color:var(--red);}
+
+.stream-vp{position:relative;background:#000;border:1px solid var(--border);overflow:hidden;aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;}
+.stream-vp img{width:100%;height:100%;object-fit:contain;display:block;filter:contrast(1.2);}
+.stream-overlay{position:absolute;top:7px;left:7px;display:flex;gap:5px;align-items:center;}
+.live-badge{background:var(--red);color:#000;font-size:9px;font-weight:700;padding:2px 6px;letter-spacing:1px;animation:livep 1.5s infinite;}
+.fps-badge{background:var(--bg1);border:1px solid var(--accent);color:var(--text);font-size:9px;padding:2px 6px;}
+.stream-bar{display:flex;align-items:center;gap:10px;padding:10px 16px;border-top:1px solid var(--border);flex-wrap:wrap;background:var(--bg2);}
+.stream-stat{font-size:11px;color:var(--text2);text-transform:uppercase;}
+.stream-stat b{color:var(--text);}
+
+.qr-wrap{text-align:center;padding:24px;}
+.qr-wrap img{border:1px solid var(--accent);box-shadow:var(--glow);max-width:220px;padding:4px;background:#fff;}
+.code-block{background:#000;border:1px solid var(--border);padding:12px 15px;font-size:11px;color:var(--green);line-height:1.9;white-space:pre-wrap;word-break:break-all;font-family:'Share Tech Mono';}
+.step{display:flex;gap:12px;align-items:flex-start;padding:12px 16px;border-bottom:1px solid var(--border);}
+.step-num{width:22px;height:22px;background:var(--accent);color:#000;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.step-txt{font-size:12px;color:var(--text);line-height:1.7;}
+
+.prog{height:3px;background:var(--border);overflow:hidden;margin-top:5px;}
+.prog-bar{height:100%;background:var(--accent);transition:width .3s;box-shadow:var(--glow);}
+
+#lb{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9500;display:none;align-items:center;justify-content:center;}
+#lb.open{display:flex;}
+#lb img{max-width:90vw;max-height:90vh;border:1px solid var(--accent);box-shadow:var(--glow);}
+#lb-close{position:fixed;top:16px;right:20px;color:var(--red);font-size:26px;cursor:pointer;z-index:9501;}
+
+#toast{position:fixed;bottom:20px;right:20px;background:var(--bg2);border:1px solid var(--accent);padding:10px 15px;font-size:12px;color:var(--text);box-shadow:var(--glow);transform:translateY(70px);opacity:0;transition:all .3s ease;z-index:10000;max-width:300px;text-transform:uppercase;letter-spacing:1px;font-family:'Share Tech Mono';font-weight:700;}
+#toast.show{transform:translateY(0);opacity:1;}
+
+.page { display: none; flex-direction: column; gap: 16px; }
+.page.active { display: flex; animation: fade-in 0.3s ease; }
+@keyframes fade-in { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:none} }
+</style>
+</head>
+<body>
+
+    <div id="loader-wrapper">
+        <div class="loader-background"></div>
+        <div class="loader-grid"></div>
+        <div class="loader-content">
+            <div class="loader-logo-container">
+                <img src="https://haybnz.web.app/logo.png" alt="H9 Logo" class="loader-logo">
+            </div>
+            <div class="loader-text-area">
+                <div class="loader-percentage" id="loader-percent">0%</div>
+                <div class="loader-main-text">SYSTEM INITIALIZING</div>
+                <div class="loader-progress-container">
+                    <div class="loader-progress-bar" id="loader-bar"></div>
+                </div>
+                <div class="loader-console" id="loader-console"></div>
+                <div class="loader-status-container">
+                    <span class="loader-status" id="loader-status">ESTABLISHING UPLINK...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="bg-grid"></div>
+
+    <nav class="topnav">
+        <div class="left-group">
+            <button class="hamburger" id="hamburger" aria-label="Open menu" aria-expanded="false">
+                <span></span>
+            </button>
+            <div class="logo-section" style="cursor: pointer;">
+                <div class="logo-icon" aria-hidden="true" style="width:38px;height:38px;flex-shrink:0;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="38" height="38">
+                        <!-- outer hex -->
+                        <polygon points="32,3 59,17.5 59,46.5 32,61 5,46.5 5,17.5"
+                            fill="none" stroke="#00FFD1" stroke-width="2"/>
+                        <!-- inner hex -->
+                        <polygon points="32,13 51,23.5 51,40.5 32,51 13,40.5 13,23.5"
+                            fill="none" stroke="#00FFD1" stroke-width="1" opacity="0.35"/>
+                        <!-- corner accent ticks -->
+                        <line x1="32" y1="3"  x2="32" y2="10" stroke="#CC3333" stroke-width="2"/>
+                        <line x1="59" y1="17.5" x2="53" y2="21" stroke="#CC3333" stroke-width="2"/>
+                        <line x1="59" y1="46.5" x2="53" y2="43" stroke="#CC3333" stroke-width="2"/>
+                        <line x1="32" y1="61"  x2="32" y2="54" stroke="#CC3333" stroke-width="2"/>
+                        <line x1="5"  y1="46.5" x2="11" y2="43" stroke="#CC3333" stroke-width="2"/>
+                        <line x1="5"  y1="17.5" x2="11" y2="21" stroke="#CC3333" stroke-width="2"/>
+                        <!-- sync arrows -->
+                        <path d="M22 28 Q32 20 42 28" fill="none" stroke="#00FFD1" stroke-width="2" stroke-linecap="square"/>
+                        <path d="M42 36 Q32 44 22 36" fill="none" stroke="#00FFD1" stroke-width="2" stroke-linecap="square"/>
+                        <polyline points="38,24 42,28 38,32" fill="none" stroke="#00FFD1" stroke-width="2"/>
+                        <polyline points="26,32 22,36 26,40" fill="none" stroke="#00FFD1" stroke-width="2"/>
+                        <!-- center dot -->
+                        <circle cx="32" cy="32" r="3" fill="#00FFD1"/>
+                        <circle cx="32" cy="32" r="6" fill="none" stroke="#00FFD1" stroke-width="0.75" opacity="0.5"/>
+                    </svg>
+                </div>
+                <div class="logo-text">
+                    <h2>SYNCME</h2>
+                    <p>DEVICE MESH v3.2</p>
+                </div>
+            </div>
+        </div>
+        <div class="hdr-right" style="display: flex; gap: 10px; align-items: center; padding-right: 16px;">
+            <div class="conn-dot" id="conn-dot" style="width:8px;height:8px;border-radius:50%;background:var(--accent-red);animation: blink 1.5s infinite;"></div>
+            <span id="conn-lbl" style="font-size:11px;color:var(--text-dim);font-family:'Share Tech Mono';">Connecting…</span>
+            <div class="tok-badge" onclick="copyToken()" title="Click to reveal & copy" style="cursor:pointer;font-size:11px;color:var(--text-main);background:rgba(0,255,209,0.1);padding:4px 8px;border:1px solid var(--border-color);">
+                🔑 <span id="tok-disp">••••••••</span>
+            </div>
+        </div>
+    </nav>
+    <div class="sidebar-backdrop" id="sidebar-backdrop" aria-hidden="true"></div>
+
+    <div class="container">
+        <aside class="sidebar" id="sidebar">
+            <div class="menu-group">
+                <div class="menu-title">[OVERVIEW]</div>
+                <div class="menu-item ni active" data-page="overview"><i class="fas fa-home menu-icon"></i><span>Dashboard</span></div>
+                <div class="menu-item ni" data-page="devices"><i class="fas fa-desktop menu-icon"></i><span>Devices</span><span class="badge" id="b-devices">0</span></div>
+            </div>
+            <div class="menu-group">
+                <div class="menu-title">[SYNC]</div>
+                <div class="menu-item ni" data-page="clipboard"><i class="fas fa-clipboard menu-icon"></i><span>Clipboard</span></div>
+                <div class="menu-item ni" data-page="files"><i class="fas fa-folder menu-icon"></i><span>Files</span><span class="badge" id="b-files">0</span></div>
+                <div class="menu-item ni" data-page="notifs"><i class="fas fa-bell menu-icon"></i><span>Notifications</span><span class="badge" id="b-notifs">0</span></div>
+                <div class="menu-item ni" data-page="shell"><i class="fas fa-terminal menu-icon"></i><span>Remote Shell</span></div>
+            </div>
+            <div class="menu-group">
+                <div class="menu-title">[ANDROID]</div>
+                <div class="menu-item ni" data-page="stats"><i class="fas fa-chart-bar menu-icon"></i><span>Device Stats</span></div>
+                <div class="menu-item ni" data-page="sms"><i class="fas fa-sms menu-icon"></i><span>SMS</span><span class="badge warn" id="b-sms">0</span></div>
+                <div class="menu-item ni" data-page="media"><i class="fas fa-camera menu-icon"></i><span>Camera & Mic</span></div>
+                <div class="menu-item ni" data-page="gps"><i class="fas fa-map-marker-alt menu-icon"></i><span>GPS</span></div>
+                <div class="menu-item ni" data-page="contacts"><i class="fas fa-address-book menu-icon"></i><span>Contacts</span><span class="badge" id="b-contacts">0</span></div>
+                <div class="menu-item ni" data-page="calllog"><i class="fas fa-phone menu-icon"></i><span>Call Log</span><span class="badge" id="b-calls">0</span></div>
+                <div class="menu-item ni" data-page="screenshots"><i class="fas fa-desktop menu-icon"></i><span>Screenshots</span><span class="badge" id="b-ss">0</span></div>
+                <div class="menu-item ni" data-page="control"><i class="fas fa-cogs menu-icon"></i><span>Control</span></div>
+                <div class="menu-item ni" data-page="stream"><i class="fas fa-video menu-icon"></i><span>Live Stream</span><span class="badge live" id="b-stream" style="display:none">LIVE</span></div>
+            </div>
+            <div class="menu-group">
+                <div class="menu-title">[SETUP]</div>
+                <div class="menu-item ni" data-page="pair"><i class="fas fa-qrcode menu-icon"></i><span>Pair / QR</span></div>
+            </div>
+        </aside>
+        <main class="main-content" id="main">
+
+
+<!-- Overview -->
+<section class="page active" id="page-overview">
+  <div class="stats-row">
+    <div class="stat-c"><div class="stat-lbl">DEVICES</div><div class="stat-val" id="sv-devices">0</div></div>
+    <div class="stat-c"><div class="stat-lbl">ONLINE</div><div class="stat-val" id="sv-online">0</div></div>
+    <div class="stat-c"><div class="stat-lbl">FILES</div><div class="stat-val" id="sv-files">0</div></div>
+    <div class="stat-c"><div class="stat-lbl">NOTIFICATIONS</div><div class="stat-val" id="sv-notifs">0</div></div>
+  </div>
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">⬡ Connected Devices</div>
+      <button class="btn btn-g sm" onclick="refreshDevices()">↻ Refresh</button>
+    </div>
+    <div class="dev-grid" id="ov-devices"><div style="color:var(--text2);font-size:11px;padding:16px;grid-column:1/-1">No devices yet.</div></div>
+  </div>
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">◉ Recent Notifications</div>
+      <button class="btn btn-g sm" onclick="goto('notifs')">View all →</button>
+    </div>
+    <div class="notif-list" id="ov-notifs" style="max-height:220px;overflow-y:auto"><div style="color:var(--text2);font-size:11px;padding:10px">No notifications.</div></div>
+  </div>
+</section>
+
+<!-- Devices -->
+<section class="page" id="page-devices">
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">⬡ All Devices</div>
+      <button class="btn btn-g sm" onclick="refreshDevices()">↻ Refresh</button>
+    </div>
+    <div class="dev-grid" id="all-devices"><div style="color:var(--text2);font-size:11px;padding:16px;grid-column:1/-1">No devices.</div></div>
+  </div>
+</section>
+
+<!-- Clipboard -->
+<section class="page" id="page-clipboard">
+  <div class="card">
+    <div class="card-head"><div class="card-title">⊕ Clipboard Sync</div><span style="font-size:11px;color:var(--text2)">All devices</span></div>
+    <div class="card-body">
+      <textarea class="clip-area" id="clip-content" placeholder="Clipboard content…"></textarea>
+      <div style="font-size:10px;color:var(--text2);margin-top:6px" id="clip-meta">No data.</div>
+      <div class="btn-row">
+        <button class="btn btn-p" onclick="pushClip()">⬆ Push</button>
+        <button class="btn btn-g" onclick="pullClip()">⬇ Pull</button>
+        <button class="btn btn-g" onclick="copyClip()">⊕ Copy Local</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Files -->
+<section class="page" id="page-files">
+  <div class="card">
+    <div class="card-head"><div class="card-title">⬛ File Transfer</div><span style="font-size:11px;color:var(--text2)">Max 500 MB</span></div>
+    <div class="card-body" style="padding-bottom:0">
+      <div class="drop-z" id="drop-z" onclick="document.getElementById('f-input').click()">
+        <div class="drop-icon">📂</div>
+        <div class="drop-lbl">Drop files here or click to browse</div>
+      </div>
+      <input type="file" id="f-input" multiple style="display:none" onchange="uploadFiles([...this.files])">
+      <div id="up-prog" style="display:none;margin-top:8px">
+        <div style="font-size:11px;color:var(--text2);margin-bottom:3px" id="up-lbl">Uploading…</div>
+        <div class="prog"><div class="prog-bar" id="prog-bar" style="width:0%"></div></div>
+      </div>
+    </div>
+    <div class="file-list" id="file-list"><div style="color:var(--text2);font-size:11px;text-align:center;padding:16px">No files yet.</div></div>
+  </div>
+</section>
+
+<!-- Notifications -->
+<section class="page" id="page-notifs">
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">◉ Notification Feed</div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-g sm" onclick="sendTestNotif()">+ Test</button>
+        <button class="btn btn-d sm" onclick="clearAllNotifs()">✕ Clear</button>
+      </div>
+    </div>
+    <div class="notif-list" id="notif-list" style="max-height:520px;overflow-y:auto"><div style="color:var(--text2);font-size:11px;text-align:center;padding:24px">No notifications.</div></div>
+  </div>
+</section>
+
+<!-- Shell -->
+<section class="page" id="page-shell">
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">▸ Remote Shell</div>
+      <span style="font-size:11px;color:var(--yellow)">⚠ Executes on target</span>
+    </div>
+    <div class="card-body" style="padding-bottom:0">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+        <label style="font-size:11px;color:var(--text2)">Target:</label>
+        <select class="inp" id="shell-target" style="width:auto;min-width:170px"><option value="">— Select device —</option></select>
+      </div>
+      <div class="terminal" id="terminal"><div class="term-empty">Select a device and run a command.</div></div>
+      <div class="cmd-row">
+        <input class="inp" id="cmd-inp" placeholder="Enter command…" onkeydown="if(event.key==='Enter')sendShell()">
+        <button class="btn btn-p" onclick="sendShell()">▸ Run</button>
+        <button class="btn btn-g" onclick="clearTerm()">✕</button>
+      </div>
+    </div>
+    <div style="height:12px"></div>
+  </div>
+</section>
+
+<!-- Android Stats -->
+<section class="page" id="page-stats">
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">📊 Device Stats</div>
+      <select class="inp" id="stats-sel" style="width:auto;min-width:150px;font-size:11px" onchange="renderStats()"><option value="">— All —</option></select>
+    </div>
+    <div id="stats-panel"><div style="color:var(--text2);font-size:11px;text-align:center;padding:24px">No Android devices reporting stats.</div></div>
+  </div>
+</section>
+
+<!-- SMS -->
+<section class="page" id="page-sms">
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">💬 SMS</div>
+      <select class="inp" id="sms-dev-sel" style="width:auto;min-width:150px;font-size:11px" onchange="loadSMSInbox()"><option value="">— Select device —</option></select>
+    </div>
+    <div class="tabs">
+      <div class="tab active" id="tab-inbox" onclick="smsTab('inbox')">📥 Inbox</div>
+      <div class="tab" id="tab-send" onclick="smsTab('send')">📤 Send</div>
+    </div>
+    <div id="sms-inbox-panel">
+      <div class="sms-list" id="sms-list"><div style="color:var(--text2);font-size:11px;text-align:center;padding:22px">Select a device.</div></div>
+    </div>
+    <div id="sms-send-panel" style="display:none">
+      <div class="card-body" style="display:flex;flex-direction:column;gap:11px">
+        <div>
+          <div style="font-size:10px;color:var(--text2);margin-bottom:5px">DEVICE</div>
+          <select class="inp" id="sms-send-dev"><option value="">— Select device —</option></select>
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--text2);margin-bottom:5px">RECIPIENT</div>
+          <input class="inp" id="sms-to" placeholder="+1234567890">
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--text2);margin-bottom:5px">MESSAGE</div>
+          <textarea class="inp" id="sms-body" rows="3" placeholder="Type message…" style="resize:vertical"></textarea>
+        </div>
+        <div style="font-size:10px;color:var(--text2)" id="sms-chars">0 / 160</div>
+        <button class="btn btn-p sm" onclick="sendSMS()" style="align-self:flex-start">📤 Send SMS</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Media -->
+<section class="page" id="page-media">
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">📷 Camera &amp; Mic</div>
+      <select class="inp" id="media-dev-sel" style="width:auto;min-width:150px;font-size:11px"><option value="">— Select Android —</option></select>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:11px;padding:12px">
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px">
+        <div style="font-size:11px;color:var(--a2);margin-bottom:9px;font-weight:600">📷 CAMERA</div>
+        <div style="display:flex;gap:6px;margin-bottom:12px">
+          <button class="btn btn-g sm" id="cam-front" onclick="setCam(0)" style="border-color:var(--accent);color:var(--a2)">Front</button>
+          <button class="btn btn-g sm" id="cam-back" onclick="setCam(1)">Back</button>
+        </div>
+        <button class="btn btn-p" onclick="triggerCamera()" style="width:100%">📸 Capture</button>
+        <div style="font-size:10px;color:var(--text2);margin-top:6px" id="cam-status">Idle</div>
+      </div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px">
+        <div style="font-size:11px;color:var(--a2);margin-bottom:9px;font-weight:600">🎙 MICROPHONE</div>
+        <div style="display:flex;gap:5px;margin-bottom:12px;flex-wrap:wrap">
+          <button class="btn btn-g sm dur-btn" data-dur="10" onclick="setDur(10)">10s</button>
+          <button class="btn btn-g sm dur-btn" data-dur="30" onclick="setDur(30)">30s</button>
+          <button class="btn btn-g sm dur-btn" data-dur="60" onclick="setDur(60)">60s</button>
+        </div>
+        <button class="btn btn-p" onclick="triggerMic()" style="width:100%">🎙 Record</button>
+        <div style="font-size:10px;color:var(--text2);margin-top:6px" id="mic-status">Idle</div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">🖼 Photos</div>
+      <button class="btn btn-g sm" onclick="refreshMedia()">↻</button>
+    </div>
+    <div class="photo-grid" id="photo-grid"><div style="color:var(--text2);font-size:11px;text-align:center;padding:16px;grid-column:1/-1">No photos.</div></div>
+  </div>
+  <div class="card">
+    <div class="card-head"><div class="card-title">🎵 Recordings</div></div>
+    <div style="padding:12px" id="rec-list"><div style="color:var(--text2);font-size:11px;text-align:center;padding:14px">No recordings.</div></div>
+  </div>
+</section>
+
+<!-- GPS -->
+<section class="page" id="page-gps">
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">📍 GPS Tracking</div>
+      <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">
+        <select class="inp" id="gps-dev-sel" style="width:auto;min-width:150px;font-size:11px" onchange="loadGPS()"><option value="">— Select Android —</option></select>
+        <button class="btn btn-p sm" onclick="triggerGPS()">📍 Get Fix</button>
+        <button class="btn btn-g sm" onclick="loadGPS()">↻</button>
+      </div>
+    </div>
+    <div class="map-wrap">
+      <div class="map-ph" id="gps-map-ph"><div class="gps-dot"></div><div style="font-size:12px;color:var(--text2)">Select device → Get Fix</div></div>
+    </div>
+    <div class="stat-grid" id="gps-info" style="padding:0"></div>
+  </div>
+  <div class="card">
+    <div class="card-head"><div class="card-title">📜 History</div><span id="gps-hist-cnt" style="font-size:11px;color:var(--text2)">0 fixes</span></div>
+    <div id="gps-hist" style="max-height:280px;overflow-y:auto"><div style="color:var(--text2);font-size:11px;text-align:center;padding:18px">No history.</div></div>
+  </div>
+</section>
+
+<!-- Contacts -->
+<section class="page" id="page-contacts">
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">👥 Contacts</div>
+      <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">
+        <select class="inp" id="contacts-dev-sel" style="width:auto;min-width:150px;font-size:11px" onchange="loadContacts()"><option value="">— Select Android —</option></select>
+        <input class="inp" id="contacts-search" placeholder="Search…" style="width:140px" oninput="loadContacts()">
+      </div>
+    </div>
+    <div id="contacts-list" style="max-height:560px;overflow-y:auto"><div style="color:var(--text2);font-size:11px;text-align:center;padding:26px">Select a device.</div></div>
+  </div>
+</section>
+
+<!-- Call Log -->
+<section class="page" id="page-calllog">
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">📞 Call Log</div>
+      <select class="inp" id="call-dev-sel" style="width:auto;min-width:150px;font-size:11px" onchange="loadCallLog()"><option value="">— Select Android —</option></select>
+    </div>
+    <div id="call-list" style="max-height:560px;overflow-y:auto"><div style="color:var(--text2);font-size:11px;text-align:center;padding:26px">Select a device.</div></div>
+  </div>
+</section>
+
+<!-- Screenshots -->
+<section class="page" id="page-screenshots">
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">🖥 Screenshots</div>
+      <div style="display:flex;gap:7px">
+        <select class="inp" id="ss-dev-sel" style="width:auto;min-width:150px;font-size:11px"><option value="">— Select Android —</option></select>
+        <button class="btn btn-p sm" onclick="triggerSS()">📸 Capture</button>
+        <button class="btn btn-g sm" onclick="refreshSS()">↻</button>
+      </div>
+    </div>
+    <div class="photo-grid" id="ss-grid"><div style="color:var(--text2);font-size:11px;text-align:center;padding:16px;grid-column:1/-1">No screenshots.</div></div>
+  </div>
+</section>
+
+<!-- Control -->
+<section class="page" id="page-control">
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">🎛 Device Control</div>
+      <select class="inp" id="ctrl-dev-sel" style="width:auto;min-width:150px;font-size:11px"><option value="">— Select Android —</option></select>
+    </div>
+    <div class="ctrl-grid">
+      <div class="ctrl-btn" onclick="ctrl('torch_on')"><div class="cicon">🔦</div><div class="clbl">Torch ON</div></div>
+      <div class="ctrl-btn" onclick="ctrl('torch_off')"><div class="cicon">💡</div><div class="clbl">Torch OFF</div></div>
+      <div class="ctrl-btn" onclick="ctrl('vibrate',{duration:500})"><div class="cicon">📳</div><div class="clbl">Vibrate</div><div class="csub">500ms</div></div>
+      <div class="ctrl-btn" onclick="ctrl('wifi_on')"><div class="cicon">📶</div><div class="clbl">WiFi ON</div></div>
+      <div class="ctrl-btn" onclick="ctrl('wifi_off')"><div class="cicon">📵</div><div class="clbl">WiFi OFF</div></div>
+      <div class="ctrl-btn" onclick="ctrlURL()"><div class="cicon">🌐</div><div class="clbl">Open URL</div></div>
+    </div>
+    <div class="card-body" style="padding-top:0;display:flex;flex-direction:column;gap:14px">
+      <div>
+        <div style="font-size:10px;color:var(--text2);letter-spacing:2px;margin-bottom:7px">VOLUME</div>
+        <div style="display:flex;align-items:center;gap:9px">
+          <select class="inp" id="vol-stream" style="width:auto">
+            <option value="music">Music</option><option value="ring">Ring</option>
+            <option value="alarm">Alarm</option><option value="notification">Notif</option>
+          </select>
+          <input type="range" class="range-inp" id="vol-sl" min="0" max="15" value="8"
+                 oninput="document.getElementById('vol-v').textContent=this.value" style="flex:1">
+          <span id="vol-v" style="font-size:11px;color:var(--a2);width:20px;text-align:right">8</span>
+          <button class="btn btn-g sm" onclick="ctrl('volume',{stream:document.getElementById('vol-stream').value,level:+document.getElementById('vol-sl').value})">Set</button>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--text2);letter-spacing:2px;margin-bottom:7px">BRIGHTNESS</div>
+        <div style="display:flex;align-items:center;gap:9px">
+          <input type="range" class="range-inp" id="bright-sl" min="0" max="255" value="128"
+                 oninput="document.getElementById('bright-v').textContent=this.value" style="flex:1">
+          <span id="bright-v" style="font-size:11px;color:var(--yellow);width:30px;text-align:right">128</span>
+          <button class="btn btn-g sm" onclick="ctrl('brightness',{value:+document.getElementById('bright-sl').value})">Set</button>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--text2);letter-spacing:2px;margin-bottom:7px">TEXT TO SPEECH</div>
+        <div style="display:flex;gap:8px">
+          <input class="inp" id="tts-txt" placeholder="Text to speak…">
+          <button class="btn btn-p sm" onclick="ctrl('tts',{text:document.getElementById('tts-txt').value})">🔊</button>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--text2);letter-spacing:2px;margin-bottom:7px">TOAST</div>
+        <div style="display:flex;gap:8px">
+          <input class="inp" id="toast-txt" placeholder="Toast message…">
+          <button class="btn btn-p sm" onclick="ctrl('toast',{text:document.getElementById('toast-txt').value})">📢</button>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:10px;color:var(--text2);letter-spacing:2px;margin-bottom:7px">COMMAND LOG</div>
+        <div class="ctrl-log" id="ctrl-log"><span style="color:var(--text2)">No commands yet.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Live Stream -->
+<section class="page" id="page-stream">
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">📹 Live Camera Stream</div>
+      <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap">
+        <select class="inp" id="stream-dev-sel" style="width:auto;min-width:150px;font-size:11px"><option value="">— Select Android —</option></select>
+        <select class="inp" id="stream-cam" style="width:auto;font-size:11px">
+          <option value="0">Front</option><option value="1">Back</option>
+        </select>
+        <select class="inp" id="stream-fps" style="width:auto;font-size:11px">
+          <option value="2">2 FPS</option><option value="4" selected>4 FPS</option>
+          <option value="8">8 FPS</option><option value="12">12 FPS</option>
+        </select>
+        <button class="btn btn-p sm" id="stream-start" onclick="streamStart()">▶ Start</button>
+        <button class="btn btn-d sm" id="stream-stop" onclick="streamStop()" style="display:none">■ Stop</button>
+      </div>
+    </div>
+    <div style="padding:12px">
+      <div class="stream-vp" id="stream-vp">
+        <div style="text-align:center;color:var(--text2)">
+          <div style="font-size:30px;margin-bottom:8px">📹</div>
+          <div style="font-size:12px">Select device → Start</div>
+        </div>
+      </div>
+    </div>
+    <div class="stream-bar">
+      <span class="stream-stat">Device: <b id="st-dev">—</b></span>
+      <span class="stream-stat" style="margin-left:auto">Viewers: <b id="st-viewers">0</b></span>
+      <span class="stream-stat">Last frame: <b id="st-frame">—</b></span>
+      <button class="btn btn-g sm" id="snap-btn" onclick="streamSnap()" style="display:none">📸 Snapshot</button>
+      <a id="stream-link" href="#" target="_blank" style="display:none"><button class="btn btn-g sm">↗ Tab</button></a>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head"><div class="card-title">ℹ How it works</div></div>
+    <div class="card-body" style="font-size:11px;color:var(--text2);line-height:2;display:flex;flex-direction:column;gap:5px">
+      <div>📱 Android agent captures frames via <code style="background:var(--bg0);padding:1px 5px;border-radius:3px">termux-camera-photo</code> and POSTs JPEG to server.</div>
+      <div>🖥 Server relays as MJPEG multipart stream — works through any HTTPS tunnel.</div>
+      <div>🌐 Dashboard loads it as a plain <code style="background:var(--bg0);padding:1px 5px;border-radius:3px">&lt;img src&gt;</code> — no plugins needed.</div>
+      <div>⚡ Agent only captures when viewers are active — battery friendly.</div>
+    </div>
+  </div>
+</section>
+
+<!-- Pair / QR -->
+<section class="page" id="page-pair">
+  <div class="card">
+    <div class="card-head"><div class="card-title">◎ QR Pairing</div></div>
+    <div style="display:grid;grid-template-columns:auto 1fr;gap:0">
+      <div class="qr-wrap">
+        <img id="qr-img" src="/api/qr" alt="QR" style="width:200px;height:200px">
+        <div style="font-size:11px;color:var(--text2);margin-top:8px">Scan with Android camera</div>
+        <button class="btn btn-g sm" style="margin-top:7px" onclick="document.getElementById('qr-img').src='/api/qr?t='+Date.now()">↻ Refresh</button>
+      </div>
+      <div style="padding:20px 16px;display:flex;flex-direction:column;gap:14px">
+        <div>
+          <div style="font-size:10px;color:var(--text2);letter-spacing:2px;margin-bottom:6px">SERVER URL</div>
+          <div class="inp" id="pair-url" style="color:var(--a2);cursor:text"></div>
+        </div>
+        <div>
+          <div style="font-size:10px;color:var(--text2);letter-spacing:2px;margin-bottom:6px">TOKEN</div>
+          <div class="inp" id="pair-token" style="font-size:11px;cursor:text"></div>
+        </div>
+        <div style="height:1px;background:var(--border)"></div>
+        <div style="font-size:11px;color:var(--text2)">Termux quick start:</div>
+        <div class="code-block" id="pair-cmd"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+</div>
+
+<!-- Lightbox -->
+<div id="lb" onclick="closeLB()">
+  <span id="lb-close" onclick="closeLB()">✕</span>
+  <img id="lb-img" src="" alt="">
+</div>
+<div id="toast"></div>
+
+<script>
+// ─── Config ──────────────────────────────────────────────────────────────────
+const TOKEN   = "{{ token }}";
+const BASE    = window.location.origin;
+const SRV_IP  = "{{ server_ip }}";
+const SRV_PORT= "{{ port }}";
+
+// ─── State ───────────────────────────────────────────────────────────────────
+let devices     = {};
+let notifications = [];
+let files       = [];
+let clipboard   = {};
+let androidStats = {};
+let gpsData     = {};
+let gpsHistory  = {};
+let photos      = [];
+let recordings  = [];
+let screenshots = [];
+let termHistory = [];
+let ctrlLog     = [];
+let camIdx      = 0;
+let micDur      = 10;
+let streamActive = false;
+let streamDid   = null;
+let streamStatTmr = null;
+let streamFpsTrack = {last:0, count:0, fps:0};
+let deferredInstall = null;
+
+// ─── Socket.IO ───────────────────────────────────────────────────────────────
+const socket = io(BASE);
+socket.on('connect',    () => setConn(true));
+socket.on('disconnect', () => setConn(false));
+
+socket.on('state', s => {
+  if (s.devices)       updateDevices(s.devices);
+  if (s.clipboard)     updateClipboard(s.clipboard);
+  if (s.notifications) s.notifications.forEach(addNotif);
+  if (s.files)         s.files.forEach(addFile);
+  if (s.photos)        s.photos.forEach(addPhoto);
+  if (s.recordings)    s.recordings.forEach(addRec);
+  if (s.screenshots)   s.screenshots.forEach(addSS);
+  if (s.android_stats) { androidStats = s.android_stats; renderStats(); }
+  if (s.gps_latest)    { gpsData = s.gps_latest; }
+});
+
+socket.on('device_update',       ds  => updateDevices(Array.isArray(ds) ? ds : []));
+socket.on('clipboard_update',    c   => updateClipboard(c));
+socket.on('notification',        n   => { addNotif(n); toast(`📣 ${n.title}`); });
+socket.on('notification_deleted',d   => removeNotif(d.id));
+socket.on('notifications_cleared',() => { notifications=[]; renderNotifs(); updBadge('notifs',0); });
+socket.on('file_added',          f   => { addFile(f); toast(`📁 ${f.filename}`); });
+socket.on('file_deleted',        d   => removeFileUI(d.file_id));
+socket.on('shell_result',        r   => appendTermResult(r));
+socket.on('android_stats',       s   => { androidStats[s.device_id]=s; renderStats(); });
+socket.on('sms_update',          ()  => loadSMSInbox());
+socket.on('photo_added',         p   => { addPhoto(p); toast('📸 Photo captured'); document.getElementById('cam-status').textContent='Photo received ✓'; });
+socket.on('photo_deleted',       d   => { photos=photos.filter(p=>p.id!==d.photo_id); renderPhotos(); });
+socket.on('recording_added',     r   => { addRec(r);   toast('🎙 Recording received'); });
+socket.on('gps_update',          g   => { gpsData[g.device_id]=g; if(document.getElementById('page-gps').classList.contains('active')) renderGPS(); });
+socket.on('contacts_update',     d   => { loadContacts(); updBadge('contacts', d.count); });
+socket.on('calllog_update',      d   => { loadCallLog(); updBadge('calls', d.count); });
+socket.on('screenshot_added',    s   => { addSS(s); toast(`🖥 Screenshot`); });
+socket.on('screenshot_deleted',  d   => { screenshots=screenshots.filter(s=>s.id!==d.screenshot_id); renderSS(); });
+socket.on('control_result',      r   => appendCtrlLog(r));
+socket.on('stream_start',        d   => { if(d.device_id===streamDid) showLiveBadge(true); });
+socket.on('stream_stop',         d   => { if(d.device_id===streamDid) showLiveBadge(false); });
+
+// ─── Navigation ──────────────────────────────────────────────────────────────
+function goto(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n => n.classList.remove('active'));
+  const pg = document.getElementById('page-' + page);
+  if (pg) pg.classList.add('active');
+  document.querySelectorAll('.ni').forEach(n => {
+    if (n.dataset.page === page) n.classList.add('active');
+  });
+  // Page-specific load triggers
+  if (page === 'stats')       renderStats();
+  if (page === 'media')       refreshMedia();
+  if (page === 'gps')         renderGPS();
+  if (page === 'contacts')    loadContacts();
+  if (page === 'calllog')     loadCallLog();
+  if (page === 'screenshots') { refreshSS(); populateSel(['ss-dev-sel']); }
+  if (page === 'control')     populateSel(['ctrl-dev-sel']);
+  if (page === 'stream')      populateSel(['stream-dev-sel']);
+  if (page === 'sms')         populateSel(['sms-dev-sel','sms-send-dev']);
+  if (page === 'media')       populateSel(['media-dev-sel']);
+  if (page === 'gps')         populateSel(['gps-dev-sel']);
+  if (page === 'contacts')    populateSel(['contacts-dev-sel']);
+  if (page === 'calllog')     populateSel(['call-dev-sel']);
+  if (page === 'stats')       populateSel(['stats-sel']);
+  if (page === 'pair')        populatePair();
+}
+
+// Wire nav clicks
+document.querySelectorAll('.ni[data-page]').forEach(n => {
+  n.addEventListener('click', () => goto(n.dataset.page));
+});
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+function api(method, path, body) {
+  const opts = { method, headers: {'X-Auth-Token': TOKEN, 'Content-Type': 'application/json'} };
+  if (body) opts.body = JSON.stringify(body);
+  return fetch(BASE + path, opts).then(r => r.json()).catch(e => { console.error(e); return {}; });
+}
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function timeAgo(ts) {
+  const s = Math.round(Date.now()/1000 - ts);
+  if (s < 5)    return 'now';
+  if (s < 60)   return s + 's';
+  if (s < 3600) return Math.floor(s/60) + 'm';
+  return Math.floor(s/3600) + 'h';
+}
+function fmtSize(b) {
+  if (b < 1024)     return b + ' B';
+  if (b < 1048576)  return (b/1024).toFixed(1) + ' KB';
+  return (b/1048576).toFixed(1) + ' MB';
+}
+function fmtDur(s) {
+  s = parseInt(s);
+  if (isNaN(s)) return '—';
+  if (s < 60) return s + 's';
+  return Math.floor(s/60) + 'm ' + (s%60) + 's';
+}
+function setConn(ok) {
+  document.getElementById('conn-dot').classList.toggle('on', ok);
+  document.getElementById('conn-lbl').textContent = ok ? 'Connected' : 'Disconnected';
+}
+function updBadge(name, count) {
+  const el = document.getElementById('b-' + name);
+  if (el) el.textContent = count;
+}
+function devIcon(t) { return {linux:'🐧',windows:'🪟',android:'📱',browser:'🌐'}[t]||'💻'; }
+function batColor(p) { return p>60?'var(--green)':p>30?'var(--yellow)':'var(--red)'; }
+
+let toastTmr;
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(toastTmr);
+  toastTmr = setTimeout(() => el.classList.remove('show'), 2800);
+}
+function openLB(src) {
+  document.getElementById('lb-img').src = src;
+  document.getElementById('lb').classList.add('open');
+}
+function closeLB() { document.getElementById('lb').classList.remove('open'); }
+
+function populateSel(ids) {
+  const androids = Object.values(devices).filter(d => d.type === 'android');
+  const opts = '<option value="">— Select Android —</option>'
+             + androids.map(d => `<option value="${d.id}">${esc(d.name)}</option>`).join('');
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const cur = el.value;
+    el.innerHTML = opts;
+    if (cur) el.value = cur;
+  });
+}
+
+// ─── Devices ─────────────────────────────────────────────────────────────────
+function updateDevices(list) {
+  list.forEach(d => devices[d.id] = d);
+  const online = Object.values(devices).filter(d => d.status === 'online').length;
+  const total  = Object.values(devices).length;
+  document.getElementById('sv-devices').textContent = total;
+  document.getElementById('sv-online').textContent  = online;
+  updBadge('devices', total);
+  renderDevices();
+  refreshShellTargets();
+}
+function refreshDevices() {
+  api('GET', '/api/devices').then(list => updateDevices(Array.isArray(list) ? list : []));
+}
+function renderDevices() {
+  const list = Object.values(devices);
+  const html = list.length ? list.map(devCard).join('')
+    : '<div style="color:var(--text2);font-size:11px;padding:16px;grid-column:1/-1">No devices.</div>';
+  document.getElementById('ov-devices').innerHTML   = html;
+  document.getElementById('all-devices').innerHTML  = html;
+}
+function devCard(d) {
+  const bat = androidStats[d.id];
+  return `<div class="dev-card" onclick="selectDev('${d.id}')">
+    <div class="dev-icon">${devIcon(d.type)}</div>
+    <div class="dev-name">${esc(d.name)}</div>
+    <div class="dev-os">${esc(d.os||d.type)}</div>
+    <div class="dev-meta"><span class="dev-ip">${esc(d.ip)}</span><span class="pill ${d.status}">${d.status}</span></div>
+    ${bat && d.type==='android' ? `<div class="bat-bar-wrap"><div class="bat-bar" style="width:${bat.battery_pct||0}%;background:${batColor(bat.battery_pct||0)}"></div></div><div style="font-size:9px;color:var(--text2)">${bat.battery_pct||0}%</div>` : ''}
+  </div>`;
+}
+function selectDev(id) {
+  document.querySelectorAll('.dev-card').forEach(c => c.classList.remove('sel'));
+  event.currentTarget.classList.add('sel');
+}
+function refreshShellTargets() {
+  const sel = document.getElementById('shell-target'), cur = sel.value;
+  sel.innerHTML = '<option value="">— Select device —</option>'
+    + Object.values(devices).map(d => `<option value="${d.id}">${devIcon(d.type)} ${esc(d.name)} (${d.status})</option>`).join('');
+  if (cur) sel.value = cur;
+  // Also refresh all android selects
+  populateSel(['stats-sel','sms-dev-sel','sms-send-dev','media-dev-sel','gps-dev-sel',
+               'contacts-dev-sel','call-dev-sel','ss-dev-sel','ctrl-dev-sel','stream-dev-sel']);
+}
+
+// ─── Clipboard ───────────────────────────────────────────────────────────────
+function updateClipboard(c) {
+  clipboard = c;
+  if (c.content !== undefined) document.getElementById('clip-content').value = c.content;
+  if (c.source)  document.getElementById('clip-meta').textContent = `Source: ${c.source} · ${timeAgo(c.timestamp)}`;
+}
+function pushClip() {
+  api('POST', '/api/clipboard', {content: document.getElementById('clip-content').value, source: 'dashboard'})
+    .then(() => toast('⊕ Pushed'));
+}
+function pullClip() { api('GET', '/api/clipboard').then(c => { updateClipboard(c); toast('⬇ Pulled'); }); }
+function copyClip() { navigator.clipboard?.writeText(document.getElementById('clip-content').value).then(()=>toast('Copied')); }
+
+// ─── Notifications ───────────────────────────────────────────────────────────
+function addNotif(n) {
+  if (notifications.find(x => x.id === n.id)) return;
+  notifications.unshift(n);
+  renderNotifs(); updBadge('notifs', notifications.length);
+  document.getElementById('sv-notifs').textContent = notifications.length;
+}
+function removeNotif(id) {
+  notifications = notifications.filter(n => n.id !== id);
+  renderNotifs(); updBadge('notifs', notifications.length);
+}
+function renderNotifs() {
+  const html = notifications.length ? notifications.map(n => `
+    <div class="notif-item">
+      <div class="ni-icon2">${esc(n.icon||'🔔')}</div>
+      <div class="ni-body">
+        <div class="ni-title">${esc(n.title)}</div>
+        <div class="ni-text">${esc(n.body)}</div>
+        <div class="ni-foot">${n.app?esc(n.app)+' · ':''}${esc(n.source)} · ${timeAgo(n.timestamp)}</div>
+      </div>
+      <button class="ni-del" onclick="deleteNotif('${n.id}')">✕</button>
+    </div>`).join('')
+    : '<div style="color:var(--text2);font-size:11px;text-align:center;padding:22px">No notifications.</div>';
+  document.getElementById('notif-list').innerHTML = html;
+  document.getElementById('ov-notifs').innerHTML = notifications.length
+    ? notifications.slice(0,5).map(n => `<div class="notif-item">
+        <div class="ni-icon2">${esc(n.icon||'🔔')}</div>
+        <div class="ni-body"><div class="ni-title">${esc(n.title)}</div><div class="ni-text">${esc(n.body)}</div></div>
+      </div>`).join('')
+    : '<div style="color:var(--text2);font-size:11px;padding:10px">No notifications.</div>';
+}
+function deleteNotif(id) { api('DELETE', `/api/notifications/${id}`).then(() => removeNotif(id)); }
+function clearAllNotifs() { api('DELETE', '/api/notifications').then(() => { notifications=[]; renderNotifs(); updBadge('notifs',0); }); }
+function sendTestNotif() { api('POST', '/api/notifications', {title:'Test',body:'SYNCME works! ⚡',app:'SYNCME',icon:'⚡',source:'dashboard'}); }
+
+// ─── Files ───────────────────────────────────────────────────────────────────
+function addFile(f) {
+  if (files.find(x => x.id === f.id)) return;
+  files.unshift(f);
+  document.getElementById('sv-files').textContent = files.length;
+  updBadge('files', files.length);
+  renderFiles();
+}
+function removeFileUI(id) {
+  files = files.filter(f => f.id !== id);
+  document.getElementById('sv-files').textContent = files.length;
+  updBadge('files', files.length); renderFiles();
+}
+function fileIcon(n) {
+  const e = (n||'').split('.').pop().toLowerCase();
+  return {pdf:'📄',doc:'📝',docx:'📝',txt:'📝',jpg:'🖼',jpeg:'🖼',png:'🖼',
+          mp4:'🎬',mp3:'🎵',zip:'📦',py:'🐍',sh:'⚙'}[e] || '📁';
+}
+function renderFiles() {
+  const html = files.length ? files.map(f => `
+    <div class="file-item">
+      <div class="f-icon">${fileIcon(f.filename)}</div>
+      <div class="f-info"><div class="f-name">${esc(f.filename)}</div><div class="f-meta">${fmtSize(f.size)} · ${esc(f.source)} · ${timeAgo(f.timestamp)}</div></div>
+      <div class="f-acts">
+        <a href="/api/files/download/${f.id}?token=${TOKEN}" download="${esc(f.filename)}"><button class="btn btn-g sm">⬇</button></a>
+        <button class="btn btn-d sm" onclick="deleteFile('${f.id}')">✕</button>
+      </div>
+    </div>`).join('')
+    : '<div style="color:var(--text2);font-size:11px;text-align:center;padding:16px">No files.</div>';
+  document.getElementById('file-list').innerHTML = html;
+}
+function deleteFile(id) { api('DELETE', `/api/files/${id}`).then(() => toast('Deleted')); }
+async function uploadFiles(list) {
+  for (const file of list) {
+    document.getElementById('up-prog').style.display = 'block';
+    document.getElementById('up-lbl').textContent = `Uploading ${file.name}…`;
+    document.getElementById('prog-bar').style.width = '30%';
+    const fd = new FormData();
+    fd.append('file', file); fd.append('source', 'dashboard'); fd.append('token', TOKEN);
+    try {
+      const r = await fetch('/api/files/upload', {method:'POST', headers:{'X-Auth-Token':TOKEN}, body:fd});
+      document.getElementById('prog-bar').style.width = '100%';
+      const d = await r.json();
+      if (d.file_id) toast(`✓ ${file.name}`);
+    } catch(e) { toast('Upload error: '+e.message); }
+    setTimeout(() => { document.getElementById('up-prog').style.display='none'; document.getElementById('prog-bar').style.width='0%'; }, 800);
+  }
+}
+const dz = document.getElementById('drop-z');
+dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('over'); });
+dz.addEventListener('dragleave', () => dz.classList.remove('over'));
+dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('over'); uploadFiles([...e.dataTransfer.files]); });
+
+// ─── Shell ───────────────────────────────────────────────────────────────────
+function sendShell() {
+  const did = document.getElementById('shell-target').value;
+  const cmd = document.getElementById('cmd-inp').value.trim();
+  if (!did) { toast('⚠ Select target'); return; }
+  if (!cmd) { toast('⚠ Enter command'); return; }
+  const entry = {device_id:did, command:cmd, ts:Date.now(), result:null};
+  termHistory.push(entry); document.getElementById('cmd-inp').value='';
+  renderTerm();
+  api('POST', '/api/shell/send', {device_id:did, command:cmd}).then(r => {
+    if (r.request_id) { entry.request_id = r.request_id; pollResult(entry); }
+  });
+}
+function pollResult(entry, n=0) {
+  if (!entry.request_id || n > 30) return;
+  setTimeout(() => {
+    api('GET', `/api/shell/result/${entry.request_id}`).then(r => {
+      if (r.status !== 'pending') { entry.result = r; renderTerm(); }
+      else pollResult(entry, n+1);
+    });
+  }, 800);
+}
+function appendTermResult(r) {
+  const e = termHistory.find(x => x.request_id === r.request_id);
+  if (e) { e.result = r; renderTerm(); }
+}
+function renderTerm() {
+  const t = document.getElementById('terminal');
+  if (!termHistory.length) { t.innerHTML = '<div class="term-empty">Select a device and run a command.</div>'; return; }
+  t.innerHTML = termHistory.map(e => `
+    <div class="term-entry">
+      <div class="term-cmd"><span class="term-dev">[${devices[e.device_id]?.name||e.device_id}]</span>${esc(e.command)}</div>
+      ${e.result
+        ? `${e.result.output?`<div class="term-out">${esc(e.result.output)}</div>`:''}
+           ${e.result.error?`<div class="term-err">${esc(e.result.error)}</div>`:''}
+           <div class="term-meta">exit ${e.result.exit_code} · ${timeAgo(e.result.timestamp)}</div>`
+        : '<div class="term-meta" style="color:var(--yellow)">⌛ waiting…</div>'}
+    </div>`).join('');
+  t.scrollTop = t.scrollHeight;
+}
+function clearTerm() { termHistory=[]; renderTerm(); }
+
+// ─── Android Stats ────────────────────────────────────────────────────────────
+function renderStats() {
+  const sel = document.getElementById('stats-sel')?.value;
+  const targets = sel ? {[sel]: androidStats[sel]} : androidStats;
+  const keys = Object.keys(targets);
+  if (!keys.length) {
+    document.getElementById('stats-panel').innerHTML = '<div style="color:var(--text2);font-size:11px;text-align:center;padding:24px">No stats yet.</div>';
+    return;
+  }
+  let html = '';
+  for (const did of keys) {
+    const s = targets[did]; if (!s) continue;
+    const dev = devices[did];
+    html += `<div style="padding:12px 16px;border-bottom:1px solid var(--border)">
+      <div style="font-size:11px;color:var(--a2);margin-bottom:10px;font-weight:600">${devIcon('android')} ${dev?esc(dev.name):did}</div>
+      <div class="stat-grid" style="padding:0">
+        ${sp('Battery',    s.battery_pct,     '%', batColor(s.battery_pct||0))}
+        ${sp('Status',     s.battery_status,  '', '')}
+        ${sp('Temp',       s.battery_temp,    '°C', '')}
+        ${sp('Mem Used',   s.mem_used_pct,    '%', '')}
+        ${sp('Mem Total',  s.mem_total_mb,    ' MB', '')}
+        ${sp('CPU 1m',     s.cpu_load_1m,     '', '')}
+        ${sp('WiFi',       s.wifi_ssid,       '', '')}
+        ${sp('Signal',     s.wifi_rssi,       ' dBm', '')}
+        ${sp('IP',         s.wifi_ip,         '', '')}
+        ${sp('Android',    s.android_version, '', '')}
+        ${sp('Model',      s.device_model,    '', '')}
+        ${sp('Storage',    s.storage_avail_mb,' MB free', '')}
+        ${sp('Uptime',     s.uptime_hours,    'h', '')}
+        ${sp('Network',    s.network_type,    '', '')}
+      </div>
+      <div style="font-size:9px;color:var(--text2);margin-top:8px">Updated ${timeAgo(s.updated)}</div>
+    </div>`;
+  }
+  document.getElementById('stats-panel').innerHTML = html;
+}
+function sp(label, value, unit, color) {
+  if (value === undefined || value === null || value === '') return '';
+  const display = (typeof value === 'number' && !Number.isInteger(value))
+    ? value.toFixed(1) + unit : String(value) + unit;
+  return `<div class="stat-pill"><div class="sp-lbl">${label}</div>
+    <div class="sp-val" style="${color?'color:'+color:''}">${esc(display)}</div></div>`;
+}
+
+// ─── SMS ─────────────────────────────────────────────────────────────────────
+function smsTab(t) {
+  document.getElementById('tab-inbox').classList.toggle('active', t==='inbox');
+  document.getElementById('tab-send').classList.toggle('active', t==='send');
+  document.getElementById('sms-inbox-panel').style.display = t==='inbox' ? '' : 'none';
+  document.getElementById('sms-send-panel').style.display  = t==='send'  ? '' : 'none';
+}
+function loadSMSInbox() {
+  const did = document.getElementById('sms-dev-sel')?.value;
+  if (!did) { document.getElementById('sms-list').innerHTML='<div style="color:var(--text2);font-size:11px;text-align:center;padding:22px">Select a device.</div>'; return; }
+  api('GET', `/api/sms/${did}/inbox`).then(msgs => {
+    if (!Array.isArray(msgs)||!msgs.length) {
+      document.getElementById('sms-list').innerHTML = '<div style="color:var(--text2);font-size:11px;text-align:center;padding:22px">No messages. Ensure Termux:API is installed.</div>';
+      return;
+    }
+    document.getElementById('sms-list').innerHTML = msgs.map(m => `
+      <div class="sms-item">
+        <div class="sms-num">${esc(m.number||m.address||'Unknown')}</div>
+        <div class="sms-body">${esc(m.body||m.content||'')}</div>
+        <div class="sms-meta">${esc(m.received||m.date||'')} <span style="color:var(--purple)">${m.type==='sent'?'↑ Sent':'↓ Inbox'}</span></div>
+      </div>`).join('');
+  });
+}
+function sendSMS() {
+  const did  = document.getElementById('sms-send-dev').value;
+  const to   = document.getElementById('sms-to').value.trim();
+  const body = document.getElementById('sms-body').value.trim();
+  if (!did)  { toast('⚠ Select device'); return; }
+  if (!to)   { toast('⚠ Enter number'); return; }
+  if (!body) { toast('⚠ Enter message'); return; }
+  api('POST', '/api/sms/send', {device_id:did, to, body}).then(r => {
+    if (r.status==='queued') { toast(`📤 SMS queued to ${to}`); document.getElementById('sms-body').value=''; }
+  });
+}
+document.getElementById('sms-body').addEventListener('input', e => {
+  document.getElementById('sms-chars').textContent = `${e.target.value.length} / 160`;
+});
+
+// ─── Camera & Mic ─────────────────────────────────────────────────────────────
+function setCam(i) {
+  camIdx = i;
+  document.getElementById('cam-front').style.borderColor = i===0?'var(--accent)':'var(--border)';
+  document.getElementById('cam-front').style.color       = i===0?'var(--a2)':'var(--text2)';
+  document.getElementById('cam-back').style.borderColor  = i===1?'var(--accent)':'var(--border)';
+  document.getElementById('cam-back').style.color        = i===1?'var(--a2)':'var(--text2)';
+}
+function setDur(d) {
+  micDur = d;
+  document.querySelectorAll('.dur-btn').forEach(b => {
+    const active = parseInt(b.dataset.dur) === d;
+    b.style.borderColor = active ? 'var(--accent)' : 'var(--border)';
+    b.style.color       = active ? 'var(--a2)'     : 'var(--text2)';
+  });
+}
+function triggerCamera() {
+  const did = document.getElementById('media-dev-sel').value;
+  if (!did) { toast('⚠ Select Android'); return; }
+  api('POST', '/api/camera/trigger', {device_id:did, camera:camIdx}).then(r => {
+    if (r.status==='queued') { document.getElementById('cam-status').textContent='📸 Queued…'; toast('Camera triggered'); }
+  });
+}
+function triggerMic() {
+  const did = document.getElementById('media-dev-sel').value;
+  if (!did) { toast('⚠ Select Android'); return; }
+  api('POST', '/api/mic/trigger', {device_id:did, duration:micDur}).then(r => {
+    if (r.status==='queued') { document.getElementById('mic-status').textContent=`🎙 Recording ${micDur}s…`; toast(`Mic triggered (${micDur}s)`); }
+  });
+}
+function addPhoto(p) { if (!photos.find(x=>x.id===p.id)) { photos.unshift(p); renderPhotos(); } }
+function renderPhotos() {
+  const el = document.getElementById('photo-grid');
+  el.innerHTML = photos.length ? photos.map(p => `
+    <div class="photo-card" onclick="openLB('/api/camera/photos/${p.id}?token=${TOKEN}')">
+      <img src="/api/camera/photos/${p.id}?token=${TOKEN}" alt="photo" loading="lazy">
+      <div class="photo-del" onclick="event.stopPropagation();delPhoto('${p.id}')">✕</div>
+      <div class="photo-meta">${devices[p.device_id]?.name||p.device_id} · ${timeAgo(p.timestamp)}</div>
+    </div>`).join('')
+    : '<div style="color:var(--text2);font-size:11px;text-align:center;padding:16px;grid-column:1/-1">No photos.</div>';
+}
+function delPhoto(id) { api('DELETE', `/api/camera/photos/${id}`).then(() => toast('Deleted')); }
+function addRec(r) { if (!recordings.find(x=>x.id===r.id)) { recordings.unshift(r); renderRecs(); } }
+function renderRecs() {
+  document.getElementById('rec-list').innerHTML = recordings.length
+    ? recordings.map(r => `
+      <div class="rec-item">
+        <span style="font-size:16px">🎙</span>
+        <div style="flex:0 0 auto"><div style="font-size:10px;color:var(--a2)">${devices[r.device_id]?.name||r.device_id}</div>
+          <div style="font-size:9px;color:var(--text2)">${timeAgo(r.timestamp)} · ${fmtSize(r.size)}</div></div>
+        <audio controls src="/api/mic/recordings/${r.id}?token=${TOKEN}"></audio>
+      </div>`).join('')
+    : '<div style="color:var(--text2);font-size:11px;text-align:center;padding:14px">No recordings.</div>';
+}
+function refreshMedia() {
+  api('GET', '/api/camera/photos').then(list => { if (Array.isArray(list)) { photos=list; renderPhotos(); } });
+  api('GET', '/api/mic/recordings').then(list => { if (Array.isArray(list)) { recordings=list; renderRecs(); } });
+  populateSel(['media-dev-sel']);
+}
+
+// ─── GPS ─────────────────────────────────────────────────────────────────────
+function triggerGPS() {
+  const did = document.getElementById('gps-dev-sel').value;
+  if (!did) { toast('⚠ Select Android'); return; }
+  api('POST', '/api/gps/trigger', {device_id:did}).then(() => toast('📍 GPS fix requested…'));
+}
+function loadGPS() {
+  const did = document.getElementById('gps-dev-sel').value;
+  if (!did) return;
+  api('GET', `/api/gps/${did}`).then(f => { if (f.latitude) { gpsData[did]=f; renderGPS(); }});
+  api('GET', `/api/gps/${did}/history?limit=200`).then(h => { if (Array.isArray(h)) { gpsHistory[did]=h; renderGPSHist(did); }});
+}
+function renderGPS() {
+  const did = document.getElementById('gps-dev-sel')?.value;
+  if (!did) return;
+  const fix = gpsData[did];
+  const ph  = document.getElementById('gps-map-ph');
+  const inf = document.getElementById('gps-info');
+  if (!fix || !fix.latitude) {
+    ph.innerHTML='<div class="gps-dot"></div><div style="font-size:12px;color:var(--text2)">Waiting for fix…</div>';
+    return;
+  }
+  const lat = fix.latitude.toFixed(6), lon = fix.longitude.toFixed(6);
+  const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${lon-.01},${lat-.01},${lon+.01},${lat+.01}&layer=mapnik&marker=${lat},${lon}`;
+  ph.outerHTML = `<iframe class="map-iframe" src="${mapUrl}" loading="lazy" id="gps-map-ph"></iframe>`;
+  inf.innerHTML = [
+    ['Latitude',  lat, '°'],
+    ['Longitude', lon, '°'],
+    ['Accuracy',  fix.accuracy ? fix.accuracy.toFixed(1) : '?', 'm'],
+    ['Altitude',  fix.altitude ? fix.altitude.toFixed(1) : '?', 'm'],
+    ['Speed',     fix.speed    ? (fix.speed*3.6).toFixed(1) : '0', 'km/h'],
+    ['Provider',  fix.provider || fix.method || '?', ''],
+    ['Updated',   timeAgo(fix.received || 0), ''],
+  ].map(([l,v,u]) => sp(l, v+u, '', '')).join('');
+  renderGPSHist(did);
+}
+function renderGPSHist(did) {
+  const hist = (gpsHistory[did]||[]).slice().reverse().slice(0,100);
+  document.getElementById('gps-hist-cnt').textContent = `${hist.length} fixes`;
+  document.getElementById('gps-hist').innerHTML = hist.length
+    ? hist.map(f => `<div class="hist-item">
+        <span>${f.latitude?.toFixed(5)}, ${f.longitude?.toFixed(5)}</span>
+        <span style="color:var(--a2)">${f.accuracy?f.accuracy.toFixed(0)+'m':''}</span>
+        <span>${timeAgo(f.received||0)}</span>
+      </div>`).join('')
+    : '<div style="color:var(--text2);font-size:11px;text-align:center;padding:16px">No history.</div>';
+}
+
+// ─── Contacts ────────────────────────────────────────────────────────────────
+function loadContacts() {
+  const did = document.getElementById('contacts-dev-sel')?.value;
+  const q   = document.getElementById('contacts-search')?.value || '';
+  if (!did) { document.getElementById('contacts-list').innerHTML='<div style="color:var(--text2);font-size:11px;text-align:center;padding:26px">Select a device.</div>'; return; }
+  api('GET', `/api/contacts/${did}?q=${encodeURIComponent(q)}`).then(list => {
+    if (!Array.isArray(list)||!list.length) {
+      document.getElementById('contacts-list').innerHTML='<div style="color:var(--text2);font-size:11px;text-align:center;padding:26px">No contacts found.</div>';
+      updBadge('contacts', 0); return;
+    }
+    document.getElementById('contacts-list').innerHTML = list.map(c => {
+      const name = c.name||c.display_name||'Unknown', num = c.number||c.phone||'';
+      return `<div class="contact-item">
+        <div class="contact-av">${esc(name[0]?.toUpperCase()||'?')}</div>
+        <div><div class="contact-name">${esc(name)}</div><div class="contact-num">${esc(num)}</div></div>
+        ${num?`<button class="c-sms-btn" onclick="quickSMS('${esc(num)}')">💬 SMS</button>`:''}
+      </div>`;
+    }).join('');
+    updBadge('contacts', list.length);
+  });
+}
+function quickSMS(num) { goto('sms'); setTimeout(() => { document.getElementById('sms-to').value=num; smsTab('send'); }, 150); }
+
+// ─── Call Log ─────────────────────────────────────────────────────────────────
+function loadCallLog() {
+  const did = document.getElementById('call-dev-sel')?.value;
+  if (!did) { document.getElementById('call-list').innerHTML='<div style="color:var(--text2);font-size:11px;text-align:center;padding:26px">Select a device.</div>'; return; }
+  api('GET', `/api/calllog/${did}`).then(list => {
+    if (!Array.isArray(list)||!list.length) {
+      document.getElementById('call-list').innerHTML='<div style="color:var(--text2);font-size:11px;text-align:center;padding:26px">No calls.</div>';
+      updBadge('calls', 0); return;
+    }
+    document.getElementById('call-list').innerHTML = list.map(c => {
+      const type = (c.type||'').toLowerCase();
+      const icon = type.includes('missed')?'📵':type.includes('out')?'📤':'📥';
+      const cls  = type.includes('missed')?'missed':type.includes('out')?'outgoing':'incoming';
+      return `<div class="call-item">
+        <div class="call-type-${cls}" style="font-size:16px">${icon}</div>
+        <div>
+          <div style="font-size:12px;color:#fff;font-weight:500">${esc(c.name||c.display_name||c.number||'Unknown')}</div>
+          ${c.name?`<div style="font-size:10px;color:var(--text2)">${esc(c.number||'')}</div>`:''}
+          <div style="font-size:10px;color:var(--text2)">${esc(c.date||'')} · <span class="call-type-${cls}">${esc(type)}</span></div>
+        </div>
+        <div class="call-dur">${fmtDur(c.duration)}</div>
+      </div>`;
+    }).join('');
+    updBadge('calls', list.length);
+  });
+}
+
+// ─── Screenshots ─────────────────────────────────────────────────────────────
+function addSS(s) { if (!screenshots.find(x=>x.id===s.id)) { screenshots.unshift(s); renderSS(); updBadge('ss', screenshots.length); } }
+function triggerSS() {
+  const did = document.getElementById('ss-dev-sel').value;
+  if (!did) { toast('⚠ Select Android'); return; }
+  api('POST', '/api/screenshot/trigger', {device_id:did}).then(() => toast('🖥 Screenshot triggered…'));
+}
+function refreshSS() {
+  api('GET', '/api/screenshot/list').then(list => { if (Array.isArray(list)) { screenshots=list; renderSS(); updBadge('ss', list.length); } });
+}
+function renderSS() {
+  document.getElementById('ss-grid').innerHTML = screenshots.length
+    ? screenshots.map(s => `
+      <div class="photo-card" onclick="openLB('/api/screenshot/${s.id}?token=${TOKEN}')">
+        <img src="/api/screenshot/${s.id}?token=${TOKEN}" alt="ss" loading="lazy">
+        <div class="photo-del" onclick="event.stopPropagation();delSS('${s.id}')">✕</div>
+        <div class="photo-meta">${devices[s.device_id]?.name||s.device_id} · ${timeAgo(s.timestamp)}</div>
+      </div>`).join('')
+    : '<div style="color:var(--text2);font-size:11px;text-align:center;padding:16px;grid-column:1/-1">No screenshots.</div>';
+}
+function delSS(id) { api('DELETE', `/api/screenshot/${id}`).then(() => toast('Deleted')); }
+
+// ─── Control ─────────────────────────────────────────────────────────────────
+function ctrl(command, params={}) {
+  const did = document.getElementById('ctrl-dev-sel').value;
+  if (!did) { toast('⚠ Select Android device'); return; }
+  api('POST', '/api/control/send', {device_id:did, command, ...params})
+    .then(r => { if (r.status==='queued') toast(`🎛 ${command} sent`); });
+}
+function ctrlURL() {
+  const url = prompt('URL to open on Android:');
+  if (url) ctrl('open_url', {url});
+}
+function appendCtrlLog(r) {
+  ctrlLog.unshift({...r, ts:Date.now()});
+  if (ctrlLog.length > 50) ctrlLog.pop();
+  const el = document.getElementById('ctrl-log');
+  if (!el) return;
+  el.innerHTML = ctrlLog.map(r => `
+    <div class="ctrl-log-entry" style="margin-bottom:3px;border-bottom:1px solid rgba(255,255,255,.04);padding-bottom:3px">
+      <span class="${r.success?'cl-ok':'cl-fail'}">${r.success?'✓':'✗'}</span>
+      <span style="color:var(--text2)"> ${esc(r.device||'')} · </span>
+      <span>${r.output?esc(r.output.slice(0,80)):r.error?`<span class="cl-fail">${esc(r.error.slice(0,80))}</span>`:'done'}</span>
+      <span style="float:right;color:var(--text2)">${timeAgo(r.timestamp)}</span>
+    </div>`).join('') || '<span style="color:var(--text2)">No commands yet.</span>';
+}
+
+// ─── Live Stream ──────────────────────────────────────────────────────────────
+function streamStart() {
+  const did = document.getElementById('stream-dev-sel').value;
+  if (!did) { toast('⚠ Select Android'); return; }
+  const fps    = document.getElementById('stream-fps').value;
+  const camera = document.getElementById('stream-cam').value;
+  streamDid    = did; streamActive = true;
+  const url    = `${BASE}/api/stream/${did}/view?token=${TOKEN}&fps=${fps}&camera=${camera}&t=${Date.now()}`;
+  const vp     = document.getElementById('stream-vp');
+  vp.innerHTML = `<img id="stream-img" src="${url}"
+    style="width:100%;height:100%;object-fit:contain"
+    onerror="streamErr()" onload="streamLoaded()">
+    <div class="stream-overlay" id="stream-ov">
+      <span class="live-badge">LIVE</span>
+      <span class="fps-badge" id="fps-disp">— fps</span>
+    </div>`;
+  document.getElementById('stream-start').style.display = 'none';
+  document.getElementById('stream-stop').style.display  = '';
+  document.getElementById('snap-btn').style.display     = '';
+  document.getElementById('b-stream').style.display     = '';
+  document.getElementById('st-dev').textContent = devices[did]?.name || did;
+  const link = document.getElementById('stream-link');
+  link.href = url; link.style.display = '';
+  streamStatTmr = setInterval(pollStreamStats, 2000);
+  toast(`📹 Stream started — ${fps} FPS`);
+}
+function streamStop() {
+  streamActive = false; clearInterval(streamStatTmr);
+  const img = document.getElementById('stream-img');
+  if (img) img.src = '';
+  document.getElementById('stream-vp').innerHTML =
+    '<div style="text-align:center;color:var(--text2)"><div style="font-size:30px;margin-bottom:8px">📹</div><div style="font-size:12px">Stream stopped</div></div>';
+  document.getElementById('stream-start').style.display = '';
+  document.getElementById('stream-stop').style.display  = 'none';
+  document.getElementById('snap-btn').style.display     = 'none';
+  document.getElementById('b-stream').style.display     = 'none';
+  document.getElementById('stream-link').style.display  = 'none';
+  document.getElementById('st-viewers').textContent = '0';
+  document.getElementById('st-frame').textContent   = '—';
+  toast('■ Stopped');
+}
+function streamLoaded() {
+  streamFpsTrack.count++;
+  const now = Date.now()/1000, elapsed = now - streamFpsTrack.last;
+  if (elapsed >= 2) {
+    streamFpsTrack.fps = (streamFpsTrack.count/elapsed).toFixed(1);
+    streamFpsTrack.count = 0; streamFpsTrack.last = now;
+    const d = document.getElementById('fps-disp');
+    if (d) d.textContent = streamFpsTrack.fps + ' fps';
+  }
+  document.getElementById('st-frame').textContent = 'now';
+}
+function streamErr() {
+  setTimeout(() => {
+    if (!streamActive) return;
+    const img = document.getElementById('stream-img');
+    if (img && img.complete && img.naturalWidth === 0)
+      toast('⚠ Stream error — is agent running with Termux:API?');
+  }, 8000);
+}
+function pollStreamStats() {
+  if (!streamDid) return;
+  api('GET', `/api/stream/${streamDid}/status`).then(s => {
+    if (!s) return;
+    document.getElementById('st-viewers').textContent = s.viewers||0;
+    if (s.last_push > 0) document.getElementById('st-frame').textContent = timeAgo(s.last_push);
+  });
+}
+function showLiveBadge(live) {
+  const b = document.getElementById('b-stream');
+  if (b) b.style.display = live ? '' : 'none';
+}
+function streamSnap() {
+  const img = document.getElementById('stream-img');
+  if (!img||!img.src) return;
+  const canvas = document.createElement('canvas');
+  canvas.width = img.naturalWidth||640; canvas.height = img.naturalHeight||480;
+  try {
+    canvas.getContext('2d').drawImage(img, 0, 0);
+    const a = document.createElement('a');
+    a.download = `snap_${Date.now()}.jpg`;
+    a.href = canvas.toDataURL('image/jpeg', 0.92);
+    a.click(); toast('📸 Saved');
+  } catch(e) { window.open(img.src, '_blank'); }
+}
+
+// ─── Pair / QR ────────────────────────────────────────────────────────────────
+function populatePair() {
+  const url = `http://${SRV_IP}:${SRV_PORT}`;
+  document.getElementById('pair-url').textContent   = url;
+  document.getElementById('pair-token').textContent = TOKEN;
+  document.getElementById('pair-cmd').textContent   =
+`pip install requests
+python agent_android.py \\
+  --server ${BASE} \\
+  --token ${TOKEN}`;
+}
+
+// ─── Token ───────────────────────────────────────────────────────────────────
+let tokVis = false;
+function copyToken() {
+  if (!tokVis) {
+    document.getElementById('tok-disp').textContent = TOKEN;
+    tokVis = true;
+    setTimeout(() => { document.getElementById('tok-disp').textContent='••••••••'; tokVis=false; }, 4000);
+  }
+  navigator.clipboard?.writeText(TOKEN).then(() => toast('🔑 Token copied'));
+}
+
+// ─── PWA ─────────────────────────────────────────────────────────────────────
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault(); deferredInstall = e;
+});
+
+// ─── Service Worker ───────────────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch(() => {});
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+refreshDevices();
+api('GET', '/api/notifications').then(list => { if (Array.isArray(list)) list.forEach(addNotif); });
+api('GET', '/api/files').then(list => { if (Array.isArray(list)) list.forEach(addFile); });
+api('GET', '/api/clipboard').then(c => { if (c.content !== undefined) updateClipboard(c); });
+api('GET', '/api/android/stats').then(s => { if (s&&typeof s==='object') { androidStats=s; renderStats(); } });
+api('GET', '/api/gps/all').then(g => { if (g&&typeof g==='object') gpsData=g; });
+refreshSS();
+
+setInterval(() => {
+  renderNotifs();
+  renderTerm();
+  renderStats();
+}, 30000);
+</script>
+
+<script>
+    setTimeout(() => {
+        const loader = document.getElementById('loader-wrapper');
+        const percent = document.getElementById('loader-percent');
+        const bar = document.getElementById('loader-bar');
+        const cons = document.getElementById('loader-console');
+        const msgs = ['INITIALIZING KERNEL...', 'LOADING DRIVERS...', 'MOUNTING VFS...', 'STARTING NEURAL NET...', 'SYSTEM ACTIVE.'];
+        let w = 0;
+        let t = setInterval(() => {
+            w += Math.floor(Math.random() * 15) + 5;
+            if(w > 100) w = 100;
+            if(percent) percent.textContent = w + '%';
+            if(bar) bar.style.width = w + '%';
+            if(w < 100) {
+                const step = Math.floor((w/100) * msgs.length);
+                if(msgs[step] && cons) cons.innerHTML = '<div>' + msgs[step] + '</div>' + cons.innerHTML;
+            } else {
+                clearInterval(t);
+                if(cons) cons.innerHTML = '<div>> ACCESS GRANTED</div>' + cons.innerHTML;
+                if(loader) setTimeout(() => loader.classList.add('fade-out'), 500);
+            }
+        }, 120);
+    }, 200);
+
+    const hamburger = document.getElementById('hamburger');
+    const sidebar = document.getElementById('sidebar');
+    const backdrop = document.getElementById('sidebar-backdrop');
+    function toggleMenu() {
+        if(sidebar) sidebar.classList.toggle('open');
+        if(backdrop) backdrop.classList.toggle('show');
+    }
+    if(hamburger) hamburger.addEventListener('click', toggleMenu);
+    if(backdrop) backdrop.addEventListener('click', toggleMenu);
+    document.querySelectorAll('.ni').forEach(item => {
+        item.addEventListener('click', () => {
+            if(window.innerWidth <= 968) {
+                if(sidebar) sidebar.classList.remove('open');
+                if(backdrop) backdrop.classList.remove('show');
+            }
+        });
+    });
+</script>
+</body>
+
+</html>

@@ -1,0 +1,13 @@
+# Server (required)
+flask>=3.0
+flask-socketio>=5.3
+requests>=2.31
+werkzeug>=3.0
+
+# Server (optional but recommended)
+qrcode[pil]>=7.4        # QR code generation for pairing
+zeroconf>=0.115         # mDNS / Bonjour device discovery
+
+# Windows agent: pip install pywin32 plyer
+# Android: pkg install python python-pip termux-api (in Termux)
+# F-Droid apps: Termux:API  Termux:Boot  Termux:Widget
