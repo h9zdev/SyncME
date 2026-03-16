@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <style name="Theme.SyncME" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <item name="colorPrimary">#1e90ff</item>
-        <item name="android:windowBackground">#0a0c10</item>
-        <item name="android:statusBarColor">#0f1218</item>
-    </style>
-</resources>
