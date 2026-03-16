@@ -1,6 +1,6 @@
-# SyncBridge v3.2 — Device Mesh & Control Hub
+# SyncMe v3.2 — Device Mesh & Control Hub
 
-SyncBridge is a lightweight, cross-platform system designed to connect and control your devices (Android, Linux, Windows) through a central server. It features a modern tactical Web UI, real-time synchronization, and powerful remote execution capabilities.
+SyncMe is a lightweight, cross-platform system designed to connect and control your devices (Android, Linux, Windows) through a central server. It features a modern tactical Web UI, real-time synchronization, and powerful remote execution capabilities.
 
 ## 🚀 Key Features
 
