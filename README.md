@@ -1,29 +1,11 @@
-# ⚡ SyncMe v3.2 — Device Mesh & Control Hub 🚀
+#  SyncMe
+![SyncMe](https://github.com/H9yzz/H9yzz/blob/main/SyncMe.png?raw=true)
 
-<p align="center">
-  <a href="https://github.com/h9zdev/SyncME">
-    <img src="https://img.shields.io/github/stars/h9zdev/SyncME?style=for-the-badge&logo=github" alt="Stars" />
-  </a>
-  <a href="https://github.com/h9zdev/SyncME/network/members">
-    <img src="https://img.shields.io/github/forks/h9zdev/SyncME?style=for-the-badge&logo=github" alt="Forks" />
-  </a>
-  <a href="https://github.com/h9zdev/SyncME/issues">
-    <img src="https://img.shields.io/github/issues/h9zdev/SyncME?style=for-the-badge&logo=github" alt="Issues" />
-  </a>
-  <br />
-  <img src="https://img.shields.io/badge/Support-Android-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android" />
-  <img src="https://img.shields.io/badge/Support-Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt="Linux" />
-  <img src="https://img.shields.io/badge/Support-Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Windows" />
-  <br />
-  <img src="https://img.shields.io/badge/Kotlin-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white" alt="Kotlin" />
-  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python" />
-  <br />
-  <a href="https://github.com/sponsors/h9zdev">
-    <img src="https://img.shields.io/badge/Make%20a%20Difference-Sponser%20My%20Work-6A1B9A?style=for-the-badge&logo=github&logoColor=white" alt="Support My Work" />
-  </a>
-</p>
 
-SyncMe is a lightweight, cross-platform system designed to connect and control your devices (**Android, Linux, Windows**) through a central server. It features a modern tactical Web UI, real-time synchronization, and powerful remote execution capabilities. 🌐
+SyncMe is a lightweight tool that connects your Android, Linux, and Windows devices so they can work together seamlessly. Control, sync, and manage everything from one simple web interface.
+<p align="center"><a href="https://github.com/h9zdev/SyncME"><img src="https://img.shields.io/github/stars/h9zdev/SyncME?style=for-the-badge&logo=github" alt="Stars"/></a> <a href="https://github.com/h9zdev/SyncME/network/members"><img src="https://img.shields.io/github/forks/h9zdev/SyncME?style=for-the-badge&logo=github" alt="Forks"/></a> <a href="https://github.com/h9zdev/SyncME/issues"><img src="https://img.shields.io/github/issues/h9zdev/SyncME?style=for-the-badge&logo=github" alt="Issues"/></a> <img src="https://img.shields.io/badge/Support-Android-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android"/> <img src="https://img.shields.io/badge/Support-Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt="Linux"/> <img src="https://img.shields.io/badge/Support-Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Windows"/> <img src="https://img.shields.io/badge/Kotlin-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white" alt="Kotlin"/> <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python"/> <a href="https://github.com/sponsors/h9zdev"><img src="https://img.shields.io/badge/Make%20a%20Difference-Sponser%20My%20Work-6A1B9A?style=for-the-badge&logo=github&logoColor=white" alt="Support My Work"/></a></p>
+
+
 
 ---
 
@@ -151,6 +133,32 @@ export SYNCBRIDGE_TOKEN="a-very-strong-random-token"
 export SECRET_KEY="your-flask-secret"
 python server.py
 ```
+## 📸 Screenshots
 
----
-*SyncMe v3.2 — Documentation updated 2024* 📅
+### Login Screen
+![Login Screen](https://github.com/H9yzz/H9yzz/blob/main/Screenshot_20260316_101636.png?raw=true)
+
+### Dashboard
+![Dashboard](https://github.com/H9yzz/H9yzz/blob/main/Screenshot_20260316_101719.png?raw=true)
+
+### Device Control
+![Device Control](https://github.com/H9yzz/H9yzz/blob/main/Screenshot_20260316_101836.png?raw=true)
+
+### Settings / Interface
+![Settings](https://github.com/H9yzz/H9yzz/blob/main/Screenshot_20260316_102031.png?raw=true)
+
+## 📜 License
+
+This project is licensed under the Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0) License. See the [LICENSE](LICENSE) file for more details.
+
+**Unauthorized use is strictly prohibited.**
+
+📧 Contact: singularat@protn.me
+
+## ☕ Support
+
+Donate via Monero: `45PU6txuLxtFFcVP95qT2xXdg7eZzPsqFfbtZp5HTjLbPquDAugBKNSh1bJ76qmAWNGMBCKk4R1UCYqXxYwYfP2wTggZNhq`
+
+## 👥 Contributors and Developers
+
+[<img src="https://avatars.githubusercontent.com/u/67865621?s=64&v=4" width="64" height="64" alt="haybnzz">](https://github.com/h9zdev) [<img src="https://avatars.githubusercontent.com/u/180658853?s=64&v=4" width="64" height="64" alt="Steiynbrodt">](https://github.com/Steiynbrodt) [<img src="https://avatars.githubusercontent.com/u/220222050?v=4&size=64" width="64" height="64" alt="H9yzz">](https://github.com/H9yzz) [<img src="https://avatars.githubusercontent.com/u/108749445?s=64&size=64" width="64" height="64" alt="VaradScript">](https://github.com/VaradScript)
